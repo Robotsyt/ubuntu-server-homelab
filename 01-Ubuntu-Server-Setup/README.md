@@ -1,187 +1,175 @@
-# Ubuntu Server Home Lab
+# Ubuntu Server Home Lab – SSH, Firewall, and Apache Deployment
 
-## Overview
+Project Type: Home Lab – Systems Administration  
+Operating System: Ubuntu Server LTS  
+Technologies: Ubuntu Server, SSH, UFW Firewall, Apache2, Git, GitHub, VS Code  
 
-This repository documents the implementation of a Linux-based home lab designed to strengthen practical Systems Administration skills. The project focuses on deploying and managing an Ubuntu Server while following administrative practices commonly used in enterprise environments.
+------------------------------------------------------------
+PROJECT OVERVIEW
+------------------------------------------------------------
+This project demonstrates the setup of a secure Ubuntu Server environment, including SSH access, firewall configuration, system updates, and Apache web server deployment. The goal was to simulate real-world Linux system administration tasks and build a portfolio-ready infrastructure project.
 
-Throughout this project, I configured secure remote administration using SSH, verified and managed firewall rules with UFW, installed and configured Apache, deployed a website from GitHub, and resolved real-world service and networking issues through structured troubleshooting.
+------------------------------------------------------------
+1. SYSTEM UPDATE & INITIAL SETUP
+------------------------------------------------------------
 
-Rather than simply completing configuration tasks, every step was documented to create a repeatable deployment process and serve as a reference for future infrastructure projects.
+sudo apt update
+sudo apt upgrade -y
 
----
+Install required packages:
 
-# Objectives
+sudo apt install git apache2 ufw -y
 
-* Deploy an Ubuntu Server environment
-* Configure secure remote administration using SSH
-* Verify system packages and security updates
-* Configure and validate the UFW firewall
-* Install and configure the Apache web server
-* Deploy a website using Git and GitHub
-* Troubleshoot service failures and networking issues
-* Document each phase of implementation
+Purpose:
+- Update system packages
+- Install Git for version control
+- Install Apache for web hosting
+- Install UFW for firewall management
 
----
+------------------------------------------------------------
+2. SSH VERIFICATION (BEFORE FIREWALL CHANGES)
+------------------------------------------------------------
 
-# Environment
+Check SSH service status:
 
-| Component        | Details                      |
-| ---------------- | ---------------------------- |
-| Operating System | Ubuntu Server LTS            |
-| Remote Access    | SSH                          |
-| Firewall         | UFW (Uncomplicated Firewall) |
-| Web Server       | Apache2                      |
-| Version Control  | Git & GitHub                 |
-| Shell            | Bash                         |
+sudo systemctl status ssh
 
----
+Test SSH connection:
 
-# Technologies Used
+ssh username@server-ip
 
-* Ubuntu Server
-* Linux CLI
-* SSH
-* UFW Firewall
-* Apache2
-* Git
-* GitHub
-* Bash
+Verification steps:
+- Confirm SSH service is active
+- Confirm port 22 is reachable
+- Confirm remote login works before firewall activation
 
----
+------------------------------------------------------------
+3. FIREWALL CONFIGURATION (UFW SETUP)
+------------------------------------------------------------
 
-# Skills Demonstrated
+Enable firewall:
 
-* Linux System Administration
-* Remote Server Management
-* Firewall Configuration
-* Service Management
-* Network Troubleshooting
-* Apache Administration
-* Git-Based Deployments
-* Root Cause Analysis
-* Technical Documentation
+sudo ufw enable
 
----
+Allow SSH:
 
-# Project Implementation
+sudo ufw allow OpenSSH
 
-## 1. Ubuntu Server Setup
+Allow web traffic:
 
-The server was installed with Ubuntu Server LTS and updated to ensure all operating system packages and security patches were current before additional software was installed.
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
 
-Administrative tasks included:
+Check firewall status:
 
-* Updating package repositories
-* Installing system updates
-* Verifying package integrity
-* Installing foundational utilities such as Git for future deployments
+sudo ufw status verbose
 
----
+Outcome:
+- Firewall activated successfully
+- SSH access preserved
+- Web ports opened for Apache
 
-## 2. SSH Remote Administration
+------------------------------------------------------------
+4. APACHE WEB SERVER INSTALLATION
+------------------------------------------------------------
 
-Remote administration was configured using SSH to allow secure command-line management from another workstation.
+Install Apache:
 
-Before enabling the firewall, SSH access was verified to ensure remote connectivity would not be interrupted during firewall activation.
+sudo apt install apache2 -y
 
----
+Start Apache:
 
-## 3. Firewall Configuration
+sudo systemctl start apache2
 
-The UFW firewall was configured to restrict unnecessary network access while allowing required services.
+Enable Apache on boot:
 
-Firewall tasks included:
+sudo systemctl enable apache2
 
-* Verifying SSH access
-* Allowing SSH through the firewall
-* Enabling UFW
-* Confirming firewall status
-* Opening TCP port 8090 for Apache after resolving a port conflict
+Check status:
 
----
+sudo systemctl status apache2
 
-## 4. Apache Web Server
+------------------------------------------------------------
+5. APACHE TROUBLESHOOTING
+------------------------------------------------------------
 
-Apache was installed to host a personal portfolio website.
+Check logs:
 
-During deployment, Apache failed to start because another service was already using the default web server port. After identifying the conflict, Apache was reconfigured to use port 8090 and normal operation was restored.
+journalctl -xe
 
----
+Restart Apache:
 
-## 5. GitHub Deployment
+sudo systemctl restart apache2
 
-Git was configured with a global username and email before connecting the server to GitHub.
+Check port usage:
 
-The portfolio repository was cloned directly into Apache's document root, allowing website updates to be deployed through Git version control rather than manual file transfers.
+sudo lsof -i :80
 
----
+Resolution:
+- Identified service or port conflict
+- Restarted Apache successfully
+- Restored web server functionality
 
-## 6. Troubleshooting
+------------------------------------------------------------
+6. CUSTOM PORT CONFIGURATION (8090)
+------------------------------------------------------------
 
-Throughout the project, several real-world administrative issues were encountered and resolved.
+Allow port through firewall:
 
-| Issue                            | Resolution                                                                                   |
-| -------------------------------- | -------------------------------------------------------------------------------------------- |
-| Apache service failed to start   | Reviewed system logs using `systemctl` and `journalctl` to identify the root cause.          |
-| Port conflict                    | Identified Docker (CasaOS) using port 8080 and reconfigured Apache to use port 8090.         |
-| Deferred service restart message | Confirmed this was expected Ubuntu behavior during package installation.                     |
-| Firewall verification            | Verified SSH remained accessible before enabling UFW and confirmed firewall rules afterward. |
-| Git configuration                | Configured Git identity before committing changes.                                           |
-| Initial Git push failed          | Created the initial commit before pushing to GitHub.                                         |
-| Nested Git repository            | Removed the nested repository and recommitted from the correct project root.                 |
-| Website deployment               | Verified repository permissions and ownership after deployment to Apache.                    |
+sudo ufw allow 8090/tcp
 
----
+Edit Apache config:
 
-# Key Accomplishments
+sudo nano /etc/apache2/ports.conf
 
-By completing this project I successfully:
+Add line:
 
-* Built an Ubuntu Server from a minimal installation
-* Configured secure SSH administration
-* Verified and enabled a Linux firewall
-* Installed and configured Apache
-* Deployed a website directly from GitHub
-* Diagnosed and resolved service startup failures
-* Resolved networking and port conflicts
-* Created a repeatable deployment workflow
-* Documented each stage of implementation
+Listen 8090
 
----
+Restart Apache:
 
-# Lessons Learned
+sudo systemctl restart apache2
 
-This project emphasized the importance of following a structured troubleshooting methodology rather than making configuration changes through trial and error.
+Verify port:
 
-Each issue was approached by verifying service status, reviewing logs, validating firewall rules, checking network ports, and identifying the root cause before implementing a solution. This approach reduced unnecessary configuration changes while improving confidence in diagnosing Linux server issues.
+sudo ss -tuln | grep 8090
 
-The project also reinforced best practices for documentation, version control, and repeatable deployments, all of which are essential skills in Systems Administration.
+------------------------------------------------------------
+7. FINAL SYSTEM VALIDATION
+------------------------------------------------------------
 
----
+Check firewall:
 
-# Future Roadmap
+sudo ufw status
 
-Planned additions to this home lab include:
+Check SSH:
 
-* Windows Server Administration
-* Active Directory
-* Group Policy
-* DNS & DHCP
-* Docker Containers
-* System Monitoring
-* Bash Automation
-* PowerShell Automation
-* Scheduled Tasks (cron)
-* SSL/HTTPS Configuration
-* Virtual Hosts
-* Network Services
+ssh username@server-ip
 
----
+Check Apache:
 
-# Conclusion
+systemctl status apache2
 
-This repository represents the foundation of my Systems Administration portfolio.
+Check open ports:
 
-The project demonstrates practical experience configuring and managing an Ubuntu Server while applying structured troubleshooting, secure remote administration, firewall management, web server deployment, and Git-based workflows.
+sudo ss -tuln
 
-As the home lab continues to grow, this repository will expand to include Windows Server, Active Directory, automation, monitoring, and additional enterprise technologies that reflect the responsibilities of a modern Systems Administrator.
+------------------------------------------------------------
+FINAL OUTCOME
+------------------------------------------------------------
+- Secure SSH remote access configured
+- UFW firewall enabled and hardened
+- Apache web server successfully deployed
+- Custom port 8090 configured
+- System stability verified after changes
+
+------------------------------------------------------------
+SKILLS DEMONSTRATED
+------------------------------------------------------------
+- Linux system administration
+- SSH remote access management
+- Firewall configuration (UFW)
+- Web server deployment (Apache2)
+- Service troubleshooting (systemctl, journalctl)
+- Network port configuration
+- Basic server hardening practices
